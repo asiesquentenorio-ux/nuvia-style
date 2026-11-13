@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Nuvia Style - Tu Asesor de Imagen Personalizado</title>
+  <!-- Tailwind CSS para diseño moderno -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: {
+      indigo: { 50:'#fcf1f2',100:'#f8e6e8',200:'#f0d3d6',500:'#d19aa1',600:'#b5737c',700:'#9e5f69' },
+      purple: { 50:'#fbf5ee',100:'#f4e8d8',600:'#b88a5e',700:'#a37748' },
+      emerald:{ 600:'#7fa58f',700:'#6a917b' },
+      slate:  { 50:'#fdf8f6',100:'#f8efec',200:'#eddcd8',300:'#dcc4c0',400:'#a88e8e',500:'#85686b',600:'#6b4f53',700:'#573e43',800:'#45313a',900:'#3a2a30' }
+    } } } };
+  </script>
+  <!-- Iconos de Lucide -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script>
+    // Solo activamos los estados iniciales de animación si GSAP cargó correctamente
+    if (window.gsap) {
+      gsap.registerPlugin(ScrollTrigger);
+      document.documentElement.classList.add('has-gsap');
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    h1, h2, h3, .hero-word { font-family: 'Cormorant Garamond', Georgia, serif !important; font-weight: 700 !important; }
+    .hero-word { letter-spacing: -0.01em !important; }
+
+    /* ---------- HERO: la imagen se expande al hacer scroll ---------- */
+    .hero-word {
+      font-size: clamp(2.25rem, 4.6vw, 4.75rem);
+      line-height: 1.02;
+      letter-spacing: -0.035em;
+    }
+    /* Móvil: una frase arriba y otra abajo de la imagen */
+    .hero-word-l { top: 5%; left: 0; right: 0; text-align: center; }
+    .hero-word-r { bottom: 5%; left: 0; right: 0; text-align: center; }
+    /* Escritorio: una frase a cada lado de la imagen */
+    @media (min-width: 768px) {
+      .hero-word-l { top: 50%; bottom: auto; left: 0; right: calc(66% + 1.5rem); text-align: right; transform: translateY(-50%); }
+      .hero-word-r { top: 50%; bottom: auto; right: 0; left: calc(66% + 1.5rem); text-align: left; transform: translateY(-50%); }
+    }
+    #hero-cta { opacity: 0; visibility: hidden; }
+
+    /* Estados iniciales (solo si GSAP está activo, evita parpadeos) */
+    .has-gsap #hero-media { clip-path: inset(24% 16% 24% 16% round 24px); }
+    @media (min-width: 768px) {
+      .has-gsap #hero-media { clip-path: inset(14% 34% 14% 34% round 28px); }
+    }
+    .has-gsap .img-reveal { clip-path: inset(16% 16% 16% 16% round 28px); }
+    .img-reveal img { transform-origin: center center; will-change: transform; }
+
+    @keyframes nudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+    .nudge { animation: nudge 1.8s ease-in-out infinite; }
+    @media (prefers-reduced-motion: reduce) { .nudge { animation: none; } }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- ENCABEZADO -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img class="nuvia-logo w-14 h-14 rounded-2xl object-cover shadow-sm" alt="Logo Nuvia Style" width="56" height="56">
+        <div>
+          <h1 class="text-xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Nuvia Style</h1>
+          <p class="text-xs text-slate-400 font-medium">Siéntete tú. Siempre única</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button onclick="openSizeGuide()" class="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-sm font-semibold transition">
+          <i data-lucide="ruler" class="w-4 h-4 text-indigo-600"></i>
+          <span class="hidden sm:inline">Guía de tallas</span>
+        </button>
+        <button onclick="openSell()" class="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-sm font-semibold transition">
+          <i data-lucide="tag" class="w-4 h-4 text-indigo-600"></i>
+          <span class="hidden sm:inline">Vender</span>
+        </button>
+        <button onclick="openAdmin()" class="p-2.5 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition" aria-label="Acceso del equipo"><i data-lucide="lock" class="w-4 h-4"></i></button>
+        <button onclick="toggleCartModal()" class="relative p-2.5 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition">
+          <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+          <span id="cart-badge" class="absolute -top-1 -right-1 bg-purple-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO: la imagen crece hasta ocupar toda la pantalla mientras haces scroll -->
+  <section id="hero" class="relative w-full overflow-hidden bg-slate-50" style="height: calc(100svh - 5rem);">
+    <div id="hero-media" class="absolute inset-0 overflow-hidden">
+      <img id="hero-img" src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=1800&q=80"
+           alt="Modelo vistiendo un blazer terracota" class="w-full h-full object-cover">
+      <div id="hero-shade" class="absolute inset-0 bg-gradient-to-t from-slate-900/75 via-slate-900/10 to-transparent opacity-0"></div>
+      <div id="hero-cta" class="absolute bottom-8 sm:bottom-12 left-6 sm:left-12 right-6 text-white max-w-xl">
+        <p id="hero-text" class="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">Prendas elegidas según tu tono de piel y tu silueta.</p>
+        <button onclick="document.getElementById('test').scrollIntoView({ behavior: 'smooth' })"
+                class="mt-5 inline-flex items-center gap-2 bg-white text-slate-900 font-bold text-sm px-5 py-3 rounded-xl hover:bg-indigo-50 transition">
+          Hacer mi test de estilo
+          <i data-lucide="arrow-down" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <h2 class="contents">
+      <span class="hero-word hero-word-l absolute font-extrabold text-slate-900 px-4">Viste<br>lo que</span>
+      <span class="hero-word hero-word-r absolute font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent px-4">te<br>favorece</span>
+    </h2>
+
+    <div id="hero-hint" class="hidden md:flex absolute bottom-6 left-1/2 -translate-x-1/2 flex-col items-center gap-1 text-slate-400 text-xs font-medium">
+      Desliza para descubrir
+      <i data-lucide="chevron-down" class="w-4 h-4 nudge"></i>
+    </div>
+  </section>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+
+    <!-- ANALISIS CON IA -->
+    <section id="ai" class="scroll-mt-24 rounded-3xl p-6 sm:p-8 mb-10 border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-purple-50 shadow-sm">
+      <div class="grid md:grid-cols-2 gap-8 items-center">
+        <div>
+          <span class="inline-flex items-center gap-1 text-indigo-700 font-bold text-xs uppercase tracking-wider bg-white px-3 py-1 rounded-full border border-indigo-100"><i data-lucide="sparkles" class="w-3 h-3"></i> Nuevo · Asesora con IA</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3">Deja que la IA descubra tu estilo</h2>
+          <p class="text-slate-500 text-sm mt-2">Tómate una selfie o sube una foto (mejor con luz natural y sin filtros). La IA analiza tu subtono de piel, color de ojos y silueta, y te recomienda colores y prendas del catálogo.</p>
+          <div class="flex gap-3 flex-wrap mt-5">
+            <label class="cursor-pointer inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-5 py-3 rounded-xl transition"><i data-lucide="camera" class="w-4 h-4"></i> Tomar foto<input id="ai-cam" type="file" accept="image/*" capture="user" class="hidden" onchange="aiPick(this.files[0]); this.value=''"></label>
+            <label class="cursor-pointer inline-flex items-center gap-2 bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 font-bold text-sm px-5 py-3 rounded-xl transition"><i data-lucide="image-up" class="w-4 h-4"></i> Subir foto<input id="ai-up" type="file" accept="image/*" class="hidden" onchange="aiPick(this.files[0]); this.value=''"></label>
+          </div>
+          <p class="text-xs text-slate-400 mt-4 flex items-start gap-1.5"><i data-lucide="shield-check" class="w-4 h-4 shrink-0"></i> Tu foto se usa solo para este análisis y no se guarda en la página. Las sugerencias son orientativas.</p>
+        </div>
+        <div id="ai-stage" class="rounded-3xl bg-white border-2 border-dashed border-indigo-200 min-h-[16rem] flex flex-col items-center justify-center text-center p-4 text-slate-400 text-sm">
+          <i data-lucide="user-round" class="w-10 h-10 text-indigo-200 mb-2"></i>Aquí verás tu foto
+        </div>
+      </div>
+      <div id="ai-result" class="hidden mt-8"></div>
+    </section>
+
+    <!-- SECCIÓN CUESTIONARIO -->
+    <section id="test" class="scroll-mt-24 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm mb-10">
+      <div class="max-w-3xl mb-6">
+        <span class="text-indigo-600 font-bold text-xs uppercase tracking-wider bg-indigo-50 px-3 py-1 rounded-full">O completa tu perfil manualmente</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Descubre las prendas ideales para tus rasgos</h2>
+        <p class="text-slate-500 text-sm mt-1">Completa tu test y nuestro sistema filtrará los cortes y colores que resaltan tu belleza natural.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Tono de piel -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Tono de Piel</label>
+          <select id="user-skin" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">Todos los tonos</option>
+            <option value="calido">Cálido / Dorado / Moreno</option>
+            <option value="frio">Frío / Claro / Rosado</option>
+            <option value="neutro">Neutro / Oliva</option>
+          </select>
+        </div>
+
+        <!-- Color de ojos -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Color de Ojos</label>
+          <select id="user-eyes" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">Todos los colores</option>
+            <option value="oscuros">Marrones / Negros</option>
+            <option value="claros">Azules / Verdes / Miel</option>
+          </select>
+        </div>
+
+        <!-- Tipo de cuerpo -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Tipo de Cuerpo</label>
+          <select id="user-body" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">Todos las siluetas</option>
+            <option value="reloj-arena">Reloj de Arena / Curvilíneo</option>
+            <option value="rectangular">Rectangular / Atlético</option>
+            <option value="triangulo">Triángulo / Cadera ancha</option>
+            <option value="triangulo-invertido">Triángulo Invertido / Espalda ancha</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATÁLOGO DE PRODUCTOS -->
+    <section>
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h3 class="text-xl font-bold text-slate-900">Catálogo de Prendas</h3>
+          <p id="match-status" class="text-xs text-indigo-600 font-medium">Mostrando todas las prendas disponibles</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-3 mb-6">
+        <input id="f-q" oninput="applyFilters()" type="search" placeholder="Buscar prenda..." class="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" style="min-width:12rem">
+        <select id="f-cat" onchange="applyFilters()" class="bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm"><option value="">Todas las categorías</option></select>
+        <select id="f-sort" onchange="applyFilters()" class="bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm"><option value="">Recomendadas primero</option><option value="asc">Precio: menor a mayor</option><option value="desc">Precio: mayor a menor</option></select>
+      </div>
+
+      <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <!-- Generado dinámicamente -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BANNER DE VENTA: la imagen se expande al hacer scroll -->
+  <section id="band" class="relative w-full mt-6" style="height: 80svh;">
+    <div id="band-media" class="absolute inset-0 overflow-hidden">
+      <img id="band-img" src="https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=1800&q=80" alt="Vestido azul noche" class="w-full h-full object-cover">
+      <div class="absolute inset-0 bg-slate-900/55"></div>
+      <div class="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-6">
+        <h3 class="text-3xl sm:text-5xl font-extrabold tracking-tight max-w-2xl">¿Tienes ropa que ya no usas? Dale una segunda vida.</h3>
+        <p class="mt-3 text-white/80 max-w-md text-sm sm:text-base">Súbela y nuestro equipo la revisa y la publica en el catálogo.</p>
+        <button onclick="openSell()" class="mt-6 bg-white text-slate-900 font-bold px-6 py-3 rounded-xl hover:bg-indigo-50 transition">Vender mi prenda</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="mt-0 py-12 text-center" style="background:#fcecec">
+    <img class="nuvia-logo w-44 h-44 sm:w-56 sm:h-56 mx-auto object-cover rounded-3xl" alt="Nuvia Style - Siéntete tú, siempre única" width="224" height="224">
+    <p class="text-xs text-slate-500 mt-4">© Nuvia Style · Siéntete tú. Siempre única</p>
+  </footer>
+
+  <!-- MODAL CARRITO -->
+  <div id="cart-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[80vh]">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-slate-900">Tu Carrito Nuvia Style</h3>
+        <button onclick="toggleCartModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div id="cart-items" class="space-y-3 overflow-y-auto flex-1 pr-1">
+        <!-- Ítems del carrito -->
+      </div>
+
+      <div class="border-t border-slate-100 pt-4 mt-4 space-y-3">
+        <input id="co-name" placeholder="Tu nombre" autocomplete="name" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm">
+        <select id="co-ship" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm"><option>Recojo en tienda</option><option>Envío a domicilio</option></select>
+        <input id="co-note" placeholder="Nota o dirección (opcional)" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm">
+        <div class="flex justify-between font-bold text-slate-900 text-base">
+          <span>Total:</span>
+          <span id="cart-total">$0.00</span>
+        </div>
+        <button onclick="sendToWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">
+          <i data-lucide="message-circle" class="w-5 h-5"></i>
+          Pedir por WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT DE LA APLICACIÓN -->
+  <script>
+    // BASE DE DATOS INICIAL DE PRENDAS
+    let products = [
+      {
+        id: 1,
+        title: "Blazer Estructurado Terracota",
+        price: 65.00,
+        image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=500&q=80",
+        skin: "calido",
+        body: "rectangular",
+        tag: "Aporta curvas y resalta tonos cálidos"
+      },
+      {
+        id: 2,
+        title: "Vestido Envolvente Azul Noche",
+        price: 52.00,
+        image: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=500&q=80",
+        skin: "frio",
+        body: "reloj-arena",
+        tag: "Acentúa la cintura y tonos fríos"
+      },
+      {
+        id: 3,
+        title: "Top Peplum Esmeralda",
+        price: 38.00,
+        image: "https://images.unsplash.com/photo-1534126511673-b6899657816a?w=500&q=80",
+        skin: "frio",
+        body: "triangulo-invertido",
+        tag: "Equilibra hombros anchos"
+      },
+      {
+        id: 4,
+        title: "Blusa Ajustada Mostaza",
+        price: 29.00,
+        image: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=500&q=80",
+        skin: "calido",
+        body: "triangulo",
+        tag: "Atrae atención a la parte superior"
+      }
+    ];
+
+    let cart = [];
+
+    // ---------- ANIMACIONES GSAP + SCROLLTRIGGER ----------
+    const prefersReduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // HERO: la imagen se expande de tarjeta pequeña a pantalla completa
+    function initHero() {
+      const hero = document.getElementById("hero");
+      if (!hero || !window.gsap) return;
+
+      const mm = gsap.matchMedia();
+      mm.add({ desk: "(min-width: 768px)", reduce: "(prefers-reduced-motion: reduce)" }, (ctx) => {
+        const { desk, reduce } = ctx.conditions;
+
+        // Sin animación: la imagen queda completa y se muestra el mensaje final
+        if (reduce) {
+          gsap.set("#hero-media", { clipPath: "inset(0% 0% 0% 0% round 0px)" });
+          gsap.set("#hero-shade", { opacity: 1 });
+          gsap.set("#hero-cta", { autoAlpha: 1 });
+          gsap.set(".hero-word, #hero-hint", { opacity: 0 });
+          return;
+        }
+
+        const from = desk
+          ? "inset(14% 34% 14% 34% round 28px)"
+          : "inset(24% 16% 24% 16% round 24px)";
+
+        const tl = gsap.timeline({
+          defaults: { ease: "none" },
+          scrollTrigger: {
+            trigger: hero,
+            start: "top 80px",      // justo debajo del header fijo (h-20)
+            end: "+=200%",
+            scrub: 1,               // suaviza el movimiento al seguir el scroll
+            pin: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true
+          }
+        });
+
+        tl.fromTo("#hero-media", { clipPath: from }, { clipPath: "inset(0% 0% 0% 0% round 0px)", ease: "power2.inOut", duration: 1 }, 0)
+          .fromTo("#hero-img", { scale: 1.9 }, { scale: 1, ease: "power2.inOut", duration: 1 }, 0)
+          .to(".hero-word-l", desk ? { xPercent: -110, opacity: 0, duration: 0.6 } : { yPercent: -150, opacity: 0, duration: 0.6 }, 0)
+          .to(".hero-word-r", desk ? { xPercent: 110, opacity: 0, duration: 0.6 } : { yPercent: 150, opacity: 0, duration: 0.6 }, 0)
+          .to("#hero-hint", { opacity: 0, duration: 0.2 }, 0)
+          .to("#hero-shade", { opacity: 1, duration: 0.3 }, 0.7)
+          .fromTo("#hero-cta", { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.3 }, 0.75);
+      });
+    }
+
+    // TARJETAS: cada imagen se expande al entrar en pantalla + parallax interno
+    let cardAnims = [];
+    function initCardAnimations() {
+      if (!window.gsap) return;
+      cardAnims.forEach(a => a.kill());
+      cardAnims = [];
+      if (prefersReduced()) {
+        gsap.set(".img-reveal", { clipPath: "none" });
+        return;
+      }
+
+      gsap.utils.toArray("#product-grid > div").forEach((card, i) => {
+        cardAnims.push(gsap.from(card, { y: 120, opacity: 0, scale: 0.88, rotate: (i % 2 ? 3 : -3), duration: 1.2, delay: (i % 4) * 0.15, ease: "back.out(1.4)", scrollTrigger: { trigger: card, start: "top 92%", once: true } }));
+      });
+
+      gsap.utils.toArray(".img-reveal").forEach(box => {
+        const img = box.querySelector("img");
+
+        // Expansión: del recorte pequeño al marco completo
+        const expand = gsap.timeline({
+          defaults: { ease: "power2.out" },
+          scrollTrigger: { trigger: box, start: "top 95%", end: "top 45%", scrub: 0.8 }
+        });
+        expand
+          .fromTo(box, { clipPath: "inset(16% 16% 16% 16% round 28px)" }, { clipPath: "inset(0% 0% 0% 0% round 0px)" }, 0)
+          .fromTo(img, { scale: 1.5 }, { scale: 1.15 }, 0);
+
+        // Parallax: la foto se desplaza más lento que la tarjeta
+        const drift = gsap.fromTo(img,
+          { yPercent: -12 },
+          { yPercent: 12, ease: "none", scrollTrigger: { trigger: box, start: "top bottom", end: "bottom top", scrub: 0.6 } }
+        );
+
+        cardAnims.push(expand, drift);
+      });
+
+      ScrollTrigger.refresh();
+    }
+
+    // INICIALIZACIÓN
+    document.addEventListener("DOMContentLoaded", () => {
+      initHero();            // primero el hero (pin), para que las posiciones de las tarjetas lo consideren
+      initApp();
+    });
+    window.addEventListener("load", () => { if (window.ScrollTrigger) ScrollTrigger.refresh(); });
+
+    // ================= ESTADO Y PERSISTENCIA (localStorage) =================
+    const store = {
+      get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } },
+      set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { toast("No se pudo guardar: almacenamiento lleno"); return false; } }
+    };
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const money = n => "$" + Number(n).toFixed(2);
+    const IN = "w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white";
+    const CATS = ["Vestidos", "Tops", "Chaquetas", "Pantalones", "Accesorios"];
+    const SIZES = ["XS", "S", "M", "L", "XL"];
+    const SEED_CATS = { 1: "Chaquetas", 2: "Vestidos", 3: "Tops", 4: "Tops" };
+
+    // ===================== SINCRONIZACIÓN EN LA NUBE =====================
+    // 👉 Pega aquí la URL de tu Firebase Realtime Database, por ejemplo:
+    //    "https://nuvia-style-default-rtdb.firebaseio.com"
+    // Si queda vacío, el sitio funciona en "modo local" (cada navegador ve solo lo suyo).
+    const DB_URL = "https://nuvia-style-default-rtdb.firebaseio.com";
+    const REMOTE = !!DB_URL;
+
+    const SEED = products.map(p => ({ ...p, cat: SEED_CATS[p.id], stock: 5, visible: true, source: "tienda" }));
+    const DEFAULT_SETTINGS = { phone: "+51914528074", pin: "1234", heroText: "", heroImage: "" };
+    let _u = 0; const uid = () => { const t = Date.now(); _u = t > _u ? t : _u + 1; return _u; };
+    // Orden: primero lo más nuevo; las 4 prendas de ejemplo (ids 1-4) al final, en su orden original
+    const ord = (a, b) => { const A = a.id > 1e9, B = b.id > 1e9; return A && B ? b.id - a.id : A ? -1 : B ? 1 : a.id - b.id; };
+    const toList = v => !v ? [] : (Array.isArray(v) ? v.filter(Boolean) : Object.values(v));
+    const mapOf = list => Object.fromEntries(list.map(x => [x.id, JSON.stringify(x)]));
+
+    let settings, sellReqs, orders;
+    if (REMOTE) {
+      products = []; cart = store.get("sm_cart", []);
+      settings = { ...DEFAULT_SETTINGS }; sellReqs = []; orders = [];
+    } else {
+      products = store.get("sm_products", SEED);
+      cart = store.get("sm_cart", []);
+      settings = Object.assign({ ...DEFAULT_SETTINGS }, store.get("sm_settings", {}));
+      sellReqs = store.get("sm_sell", []);
+      orders = store.get("sm_orders", []);
+    }
+    let adminOn = false, adminTab = "resumen";
+
+    let remoteReady = false, remoteFailed = false, lastMeta = null, pushing = 0, chain = Promise.resolve();
+    let snap = { products: {}, sellReqs: {}, orders: {}, settings: null };
+    const rBase = () => DB_URL.replace(/\/+$/, "") + "/nuvia";
+    async function rGet(p, q = "") { const r = await fetch(`${rBase()}/${p}.json${q}`, { cache: "no-store" }); if (!r.ok) throw new Error("GET " + r.status); return r.json(); }
+    async function rPatch(obj) {
+      const body = { ...obj, "meta/updated": { ".sv": "timestamp" } };
+      const r = await fetch(`${rBase()}.json`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      if (!r.ok) throw new Error("PATCH " + r.status);
+    }
+    async function loadRemote() {
+      const [p, st, m] = await Promise.all([rGet("products"), rGet("settings"), rGet("meta/updated")]);
+      products = toList(p).sort(ord); snap.products = mapOf(products);
+      settings = { ...DEFAULT_SETTINGS, ...(st || {}) }; snap.settings = JSON.stringify(settings);
+      lastMeta = m;
+    }
+    // Solicitudes de venta y pedidos solo se descargan cuando entra el equipo al panel
+    async function loadAdminData() {
+      if (!REMOTE || !remoteReady) return;
+      const [sr, od] = await Promise.all([rGet("sellReqs"), rGet("orders")]);
+      sellReqs = toList(sr).sort(ord); snap.sellReqs = mapOf(sellReqs);
+      orders = toList(od).sort(ord); snap.orders = mapOf(orders);
+    }
+    // Sube UNA vez lo que cada persona ya había guardado en su navegador con la versión anterior
+    async function migrateLocal() {
+      try {
+        if (localStorage.getItem("sm_migrated")) return;
+        const up = {};
+        for (const [name, key] of [["products", "sm_products"], ["sellReqs", "sm_sell"], ["orders", "sm_orders"]]) {
+          let local = []; try { local = JSON.parse(localStorage.getItem(key)) || []; } catch { }
+          if (!local.length) continue;
+          const have = (await rGet(name, "?shallow=true")) || {};
+          local.forEach(x => { if (x && x.id != null && !(x.id in have)) up[`${name}/${x.id}`] = x; });
+        }
+        try { const st = JSON.parse(localStorage.getItem("sm_settings")); if (st && !(await rGet("settings"))) up["settings"] = st; } catch { }
+        if (Object.keys(up).length) await rPatch(up);
+        localStorage.setItem("sm_migrated", "1");
+      } catch (e) { if (String(e).includes("GET") || String(e).includes("PATCH")) throw e; }
+    }
+    async function startRemote() {
+      try {
+        const meta = await rGet("meta");
+        if (!meta || !meta.seeded) { const up = { "meta/seeded": true }; SEED.forEach(p => up[`products/${p.id}`] = p); await rPatch(up); }
+        await migrateLocal();
+        await loadRemote();
+        remoteReady = true; remoteFailed = false;
+      } catch (e) {
+        console.error(e);
+        if (!remoteFailed) toast("Sin conexión con la base de datos: mostrando datos locales");
+        remoteFailed = true;
+        if (!products.length) products = store.get("sm_products", SEED);
+      }
+      applySettings(); applyFilters(); updateCartUI();
+    }
+    async function pollRemote() {
+      if (!REMOTE || document.hidden || pushing) return;
+      if (!remoteReady) return startRemote();
+      try {
+        const m = await rGet("meta/updated");
+        if (m !== lastMeta) { await loadRemote(); if (adminOn) await loadAdminData(); applySettings(); applyFilters(); updateCartUI(); }
+      } catch { }
+    }
+    if (REMOTE) {
+      setInterval(pollRemote, 20000);
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) pollRemote(); });
+    }
+    // Envía solo lo que cambió (por prenda), para que varias personas no se pisen entre sí
+    function pushRemote() {
+      const up = {};
+      const diff = (name, list) => {
+        const cur = mapOf(list), old = snap[name] || {};
+        for (const id in cur) if (cur[id] !== old[id]) up[`${name}/${id}`] = JSON.parse(cur[id]);
+        for (const id in old) if (!(id in cur)) up[`${name}/${id}`] = null;
+        snap[name] = cur;
+      };
+      diff("products", products); diff("sellReqs", sellReqs); diff("orders", orders);
+      const st = JSON.stringify(settings); if (st !== snap.settings) { up["settings"] = settings; snap.settings = st; }
+      if (!Object.keys(up).length) return;
+      pushing++;
+      chain = chain.then(() => rPatch(up)).then(async () => { try { lastMeta = await rGet("meta/updated"); } catch { } })
+        .catch(() => {
+          toast("No se pudo sincronizar. Revisa tu conexión e inténtalo otra vez");
+          for (const k in up) { // marcar para reintentar en el próximo guardado
+            if (k === "settings") { snap.settings = null; continue; }
+            const [n, id] = k.split("/"); snap[n] = snap[n] || {};
+            if (up[k] === null) snap[n][id] = "x"; else delete snap[n][id];
+          }
+        }).finally(() => { pushing--; });
+    }
+    const save = () => {
+      if (!REMOTE) return [store.set("sm_products", products), store.set("sm_settings", settings), store.set("sm_sell", sellReqs), store.set("sm_orders", orders), store.set("sm_cart", cart)].every(Boolean);
+      store.set("sm_cart", cart);
+      if (!remoteReady) { toast("Sin conexión con la base de datos: el cambio no se guardó"); return false; }
+      pushRemote(); return true;
+    };
+
+    // ================= UTILIDADES =================
+    function toast(msg) {
+      const t = document.createElement("div");
+      t.className = "fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-xl z-[80]";
+      t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2800);
+    }
+    function openModal(html, width = "max-w-md") {
+      closeModal();
+      const m = document.createElement("div");
+      m.id = "dyn-modal";
+      m.className = "fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4";
+      m.innerHTML = `<div class="bg-white rounded-3xl w-full ${width} max-h-[90vh] overflow-y-auto p-6 shadow-2xl relative"><button onclick="closeModal()" class="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-700" aria-label="Cerrar"><i data-lucide="x" class="w-5 h-5"></i></button>${html}</div>`;
+      m.addEventListener("click", e => { if (e.target === m) closeModal(); });
+      document.body.appendChild(m); lucide.createIcons();
+    }
+    function closeModal() { const m = $("dyn-modal"); if (m) m.remove(); }
+    // Reduce la foto a 800px para que quepa en el almacenamiento del navegador
+    function readImage(file, cb) {
+      const r = new FileReader();
+      r.onload = e => {
+        const im = new Image();
+        im.onload = () => {
+          const k = Math.min(1, 640 / Math.max(im.width, im.height)), c = document.createElement("canvas");
+          c.width = im.width * k; c.height = im.height * k;
+          c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+          cb(c.toDataURL("image/jpeg", 0.7));
+        };
+        im.src = e.target.result;
+      };
+      r.readAsDataURL(file);
+    }
+
+    // ================= CATÁLOGO =================
+    function applyFilters() {
+      const skin = $("user-skin").value, body = $("user-body").value;
+      const q = $("f-q").value.toLowerCase().trim(), cat = $("f-cat").value, sort = $("f-sort").value;
+      const list = products
+        .filter(p => p.visible !== false && (!q || p.title.toLowerCase().includes(q)) && (!cat || p.cat === cat))
+        .map(p => ({ ...p, isMatch: !!((skin && (p.skin === skin || p.skin === "todos")) || (body && (p.body === body || p.body === "todos"))) }));
+      if (sort === "asc") list.sort((a, b) => a.price - b.price);
+      else if (sort === "desc") list.sort((a, b) => b.price - a.price);
+      else list.sort((a, b) => b.isMatch - a.isMatch);
+      const m = list.filter(p => p.isMatch).length;
+      $("match-status").innerText = (skin || body) ? `Recomendaciones listas: ${m} prenda(s) coinciden con tus rasgos` : `Mostrando ${list.length} prenda(s) disponible(s)`;
+      renderProducts(list);
+    }
+
+    function renderProducts(items) {
+      const grid = $("product-grid");
+      grid.innerHTML = "";
+      if (!items.length) {
+        grid.innerHTML = `<p class="col-span-full text-center py-10 text-slate-400 font-medium">${REMOTE && !remoteReady && !remoteFailed ? "Cargando catálogo…" : "No se encontraron prendas con los filtros seleccionados."}</p>`;
+        initCardAnimations();
+        return;
+      }
+      items.forEach(p => {
+        const out = p.stock < 1, card = document.createElement("div");
+        card.className = `bg-white rounded-2xl border ${p.isMatch ? "border-indigo-500 ring-2 ring-indigo-500/20" : "border-slate-200"} overflow-hidden flex flex-col relative transition duration-200 hover:shadow-lg`;
+        card.innerHTML = `
+          ${p.isMatch ? `<div class="absolute top-3 left-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[11px] font-extrabold px-2.5 py-1 rounded-full shadow-md z-10 flex items-center gap-1"><i data-lucide="sparkles" class="w-3 h-3"></i> ¡Ideal Para Ti!</div>` : ""}
+          ${p.source === "usuario" ? `<div class="absolute top-3 right-3 bg-white/90 text-slate-700 text-[11px] font-bold px-2.5 py-1 rounded-full z-10">Segunda mano</div>` : ""}
+          <button onclick="openProduct(${p.id})" class="img-reveal block w-full h-64 overflow-hidden bg-slate-100 relative" aria-label="Ver ${esc(p.title)}">
+            <img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy" class="w-full h-full object-cover">
+            ${out ? `<span class="absolute inset-0 bg-white/70 flex items-center justify-center font-extrabold text-slate-700">Agotado</span>` : ""}
+          </button>
+          <div class="p-4 flex-1 flex flex-col justify-between">
+            <div>
+              <p class="text-xs text-indigo-600 font-semibold mb-1">${esc(p.tag || "Prenda Exclusiva")}</p>
+              <h4 class="font-bold text-slate-900 text-base">${esc(p.title)}</h4>
+            </div>
+            <div class="mt-4 flex items-center justify-between">
+              <span class="text-lg font-extrabold text-slate-900">${money(p.price)}</span>
+              <button onclick="openProduct(${p.id})" ${out ? "disabled" : ""} class="bg-slate-900 hover:bg-indigo-600 disabled:opacity-40 text-white p-2.5 rounded-xl transition" aria-label="Elegir talla y comprar">
+                <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>`;
+        grid.appendChild(card);
+      });
+      lucide.createIcons();
+      initCardAnimations();
+    }
+
+    // ================= GUIA DE TALLAS =================
+    let mySize = null;
+    const CHART = [
+      { s: "XS", bust: [0, 84], waist: [0, 64], hip: [0, 90] },
+      { s: "S", bust: [85, 89], waist: [65, 69], hip: [91, 95] },
+      { s: "M", bust: [90, 95], waist: [70, 75], hip: [96, 101] },
+      { s: "L", bust: [96, 102], waist: [76, 82], hip: [102, 108] },
+      { s: "XL", bust: [103, 999], waist: [83, 999], hip: [109, 999] }
+    ];
+    const sgIdx = (v, k) => { if (!v) return null; const i = CHART.findIndex(r => v <= r[k][1]); return i < 0 ? 4 : i; };
+    function openSizeGuide() {
+      openModal(`<h3 class="text-xl font-extrabold text-slate-900 pr-6">Guía de tallas</h3>
+        <p class="text-xs text-slate-500 mb-4">Ingresa tus datos y te decimos qué talla elegir. Con tus medidas el resultado es más preciso.</p>
+        <form onsubmit="calcSize(event)" class="space-y-3">
+          <div class="grid grid-cols-2 gap-2">
+            <label class="text-xs font-bold">Altura (cm)<input id="sg-h" type="number" required min="120" max="220" placeholder="165" class="${IN} mt-1"></label>
+            <label class="text-xs font-bold">Peso (kg)<input id="sg-w" type="number" required min="30" max="200" step="0.1" placeholder="60" class="${IN} mt-1"></label>
+          </div>
+          <p class="text-xs font-bold text-slate-700 pt-1">Medidas <span class="font-medium text-slate-400">(opcional, en cm)</span></p>
+          <div class="grid grid-cols-3 gap-2">
+            <input id="sg-bu" type="number" min="50" max="160" placeholder="Busto" class="${IN}" aria-label="Busto">
+            <input id="sg-wa" type="number" min="50" max="160" placeholder="Cintura" class="${IN}" aria-label="Cintura">
+            <input id="sg-hi" type="number" min="50" max="160" placeholder="Cadera" class="${IN}" aria-label="Cadera">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="text-xs font-bold">Tipo de prenda<select id="sg-type" class="${IN} mt-1"><option value="top">Superior (blusas, tops)</option><option value="bottom">Inferior (pantalón, falda)</option><option value="dress">Vestidos y conjuntos</option></select></label>
+            <label class="text-xs font-bold">Cómo te gusta<select id="sg-fit" class="${IN} mt-1"><option value="regular">Regular</option><option value="ajustado">Ajustado</option><option value="holgado">Holgado</option></select></label>
+          </div>
+          <button class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-3 rounded-xl">Encontrar mi talla</button>
+        </form>
+        <div id="sg-result" class="mt-4"></div>`, "max-w-md");
+    }
+    function calcSize(e) {
+      e.preventDefault();
+      const n = id => parseFloat($(id).value) || null;
+      const h = n("sg-h"), w = n("sg-w"), bu = n("sg-bu"), wa = n("sg-wa"), hi = n("sg-hi"), type = $("sg-type").value, fit = $("sg-fit").value;
+      const out = $("sg-result");
+      if (h < 120 || h > 220 || w < 30 || w > 200 || [bu, wa, hi].some(v => v && (v < 50 || v > 160))) { out.innerHTML = `<p class="text-sm text-red-500">Revisa los datos: algún valor parece fuera de rango.</p>`; return; }
+      const bmi = w / ((h / 100) ** 2);
+      const bi = bmi < 18.5 ? 0 : bmi < 21 ? 1 : bmi < 24 ? 2 : bmi < 28 ? 3 : 4;
+      const wi = w <= 52 ? 0 : w <= 58 ? 1 : w <= 66 ? 2 : w <= 75 ? 3 : 4;
+      const base = Math.round((bi + wi) / 2);
+      const m = (type === "top" ? [sgIdx(bu, "bust"), sgIdx(wa, "waist")] : type === "bottom" ? [sgIdx(wa, "waist"), sgIdx(hi, "hip")] : [sgIdx(bu, "bust"), sgIdx(wa, "waist"), sgIdx(hi, "hip")]).filter(x => x !== null);
+      let idx = m.length ? Math.max(...m) : base;
+      if (fit === "holgado") idx = Math.min(4, idx + 1);
+      const size = CHART[idx].s, alt = CHART[idx === 4 ? 3 : idx + 1].s;
+      const notes = [m.length ? "Calculada con tus medidas." : "Estimada con tu peso y altura. Si te mides busto, cintura y cadera será más precisa."];
+      if (h >= 172) notes.push("Por tu altura, revisa que el largo de la prenda te acomode.");
+      if (h <= 155) notes.push("Por tu altura, quizá necesites ajustar el largo (dobladillo).");
+      out.innerHTML = `<div class="rounded-2xl bg-indigo-50 border border-indigo-100 p-4 text-center">
+          <p class="text-xs font-semibold text-indigo-700">Tu talla recomendada</p>
+          <p class="text-5xl font-extrabold text-slate-900 my-1" style="font-family:'Cormorant Garamond',serif">${size}</p>
+          <p class="text-xs text-slate-600">Si estás entre dos tallas, elige la <b>${alt}</b>.</p>
+        </div>
+        <ul class="text-xs text-slate-500 mt-3 space-y-1 list-disc pl-5">${notes.map(t => `<li>${t}</li>`).join("")}</ul>
+        <div class="overflow-x-auto mt-3"><table class="w-full text-xs text-center border-collapse"><thead><tr class="text-slate-400"><th class="py-1">Talla</th><th>Busto</th><th>Cintura</th><th>Cadera</th></tr></thead><tbody>${CHART.map((r, i) => { const f = v => v[0] === 0 ? "≤" + v[1] : v[1] === 999 ? v[0] + "+" : v[0] + "–" + v[1]; return `<tr class="${i === idx ? "bg-indigo-100 font-bold text-slate-900" : "text-slate-600"}"><td class="py-1.5">${r.s}</td><td>${f(r.bust)}</td><td>${f(r.waist)}</td><td>${f(r.hip)}</td></tr>`; }).join("")}</tbody></table></div>
+        <button onclick="useSize('${size}')" class="mt-4 w-full bg-slate-900 hover:bg-indigo-600 text-white font-bold py-2.5 rounded-xl transition">Buscar prendas en talla ${size}</button>
+        <p class="text-[11px] text-slate-400 mt-2">Guía orientativa en cm: las medidas pueden variar según la prenda.</p>`;
+    }
+    function useSize(s) {
+      mySize = s; closeModal(); toast(`Talla ${s} guardada: la verás preseleccionada`);
+      $("product-grid").scrollIntoView({ behavior: "smooth" });
+    }
+
+    // ================= COMPRA =================
+    function openProduct(id) {
+      const p = products.find(x => x.id === id); if (!p) return;
+      const sizes = p.sizes || SIZES;
+      openModal(`<div class="grid sm:grid-cols-2 gap-6">
+        <img src="${esc(p.image)}" alt="${esc(p.title)}" class="w-full h-72 sm:h-full max-h-[420px] object-cover rounded-2xl bg-slate-100">
+        <div class="flex flex-col gap-3">
+          <p class="text-xs text-indigo-600 font-semibold">${esc(p.tag || "Prenda exclusiva")}</p>
+          <h3 class="text-xl font-extrabold text-slate-900 pr-6">${esc(p.title)}</h3>
+          <p class="text-2xl font-extrabold">${money(p.price)}</p>
+          ${p.desc ? `<p class="text-sm text-slate-500">${esc(p.desc)}</p>` : ""}
+          <p class="text-xs text-slate-400">${p.stock} disponible(s)${p.cond ? " · Estado: " + esc(p.cond) : ""}</p>
+          <div><div class="flex items-center justify-between mb-2"><p class="text-xs font-bold">Talla</p><button type="button" onclick="openSizeGuide()" class="text-xs font-semibold text-indigo-600 underline">¿Cuál es mi talla?</button></div><div class="flex gap-2 flex-wrap">${sizes.map((s, i) => `<button type="button" data-size="${esc(s)}" onclick="pickSize(this)" class="size-btn px-3 py-1.5 rounded-lg border text-sm font-semibold ${(mySize && sizes.includes(mySize) ? s === mySize : i === 0) ? "bg-slate-900 text-white border-slate-900" : "border-slate-200"}">${esc(s)}</button>`).join("")}</div></div>
+          <div class="flex items-center gap-3"><label for="pd-qty" class="text-xs font-bold">Cantidad</label><input id="pd-qty" type="number" min="1" max="${p.stock}" value="1" class="${IN}" style="width:5rem"></div>
+          <button onclick="addToCart(${p.id})" ${p.stock < 1 ? "disabled" : ""} class="mt-auto bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white font-bold py-3 rounded-xl transition">Añadir al carrito</button>
+        </div></div>`, "max-w-3xl");
+    }
+    function pickSize(b) {
+      document.querySelectorAll(".size-btn").forEach(x => { x.classList.remove("bg-slate-900", "text-white", "border-slate-900"); x.classList.add("border-slate-200"); });
+      b.classList.remove("border-slate-200"); b.classList.add("bg-slate-900", "text-white", "border-slate-900");
+    }
+    function addToCart(id) {
+      const p = products.find(x => x.id === id);
+      const size = document.querySelector(".size-btn.bg-slate-900")?.dataset.size || "Única";
+      const qty = Math.max(1, parseInt($("pd-qty")?.value) || 1);
+      const line = cart.find(c => c.id === id && c.size === size), have = (line?.qty || 0) + qty;
+      if (have > p.stock) return toast(`Solo quedan ${p.stock} unidad(es)`);
+      if (line) line.qty = have; else cart.push({ id, size, qty });
+      updateCartUI(); closeModal(); toast("Añadido al carrito");
+    }
+    function chgQty(i, d) {
+      const c = cart[i], p = products.find(x => x.id === c.id), q = c.qty + d;
+      if (q < 1) return removeFromCart(i);
+      if (q > p.stock) return toast("No hay más stock de esta prenda");
+      c.qty = q; updateCartUI();
+    }
+    function removeFromCart(i) { cart.splice(i, 1); updateCartUI(); }
+    function toggleCartModal() { $("cart-modal").classList.toggle("hidden"); }
+
+    function updateCartUI() {
+      cart = cart.filter(c => products.some(p => p.id === c.id));
+      const n = cart.reduce((s, c) => s + c.qty, 0), badge = $("cart-badge"), box = $("cart-items");
+      badge.innerText = n; badge.classList.toggle("hidden", !n);
+      box.innerHTML = cart.length ? "" : `<p class="text-sm text-slate-400 text-center py-6">Tu carrito está vacío. Elige una prenda del catálogo.</p>`;
+      let total = 0;
+      cart.forEach((c, i) => {
+        const p = products.find(x => x.id === c.id); total += p.price * c.qty;
+        const d = document.createElement("div");
+        d.className = "flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100 gap-2";
+        d.innerHTML = `<div class="flex items-center gap-3 min-w-0"><img src="${esc(p.image)}" alt="" class="w-12 h-12 object-cover rounded-lg"><div class="min-w-0"><p class="font-bold text-xs text-slate-800 truncate">${esc(p.title)}</p><p class="text-xs text-slate-500">Talla ${esc(c.size)} · ${money(p.price)}</p></div></div>
+          <div class="flex items-center gap-1 text-sm font-bold"><button onclick="chgQty(${i},-1)" class="w-6 h-6 rounded bg-white border" aria-label="Menos">−</button>${c.qty}<button onclick="chgQty(${i},1)" class="w-6 h-6 rounded bg-white border" aria-label="Más">+</button><button onclick="removeFromCart(${i})" class="ml-2 text-slate-400 hover:text-red-500" aria-label="Quitar"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`;
+        box.appendChild(d);
+      });
+      $("cart-total").innerText = money(total);
+      lucide.createIcons(); store.set("sm_cart", cart);
+    }
+
+    function sendToWhatsApp() {
+      if (!cart.length) return toast("Tu carrito está vacío");
+      const name = $("co-name").value.trim();
+      if (!name) { $("co-name").focus(); return toast("Escribe tu nombre para el pedido"); }
+      const ship = $("co-ship").value, note = $("co-note").value.trim();
+      const lines = cart.map(c => { const p = products.find(x => x.id === c.id); return { title: p.title, size: c.size, qty: c.qty, price: p.price }; });
+      const total = lines.reduce((s, l) => s + l.price * l.qty, 0);
+      const skin = $("user-skin").value || "No especificado", body = $("user-body").value || "No especificado";
+      let t = `*¡Hola Nuvia Style! Quiero realizar un pedido:*\n\n*Cliente:* ${name}\n*Entrega:* ${ship}\n*Mis rasgos:* Piel: ${skin} | Silueta: ${body}\n\n*Prendas:*\n`;
+      lines.forEach(l => t += `- ${l.title} (talla ${l.size}) x${l.qty}: ${money(l.price * l.qty)}\n`);
+      t += `\n*Total a pagar:* ${money(total)}`;
+      if (note) t += `\n*Nota:* ${note}`;
+      cart.forEach(c => { products.find(x => x.id === c.id).stock -= c.qty; });
+      orders.unshift({ id: uid(), date: new Date().toLocaleString("es-PE"), name, ship, note, lines, total, status: "nuevo" });
+      cart = []; save(); updateCartUI(); toggleCartModal(); applyFilters();
+      window.open(`https://wa.me/${settings.phone.replace(/\D/g, "")}?text=${encodeURIComponent(t)}`, "_blank");
+    }
+
+    // ================= VENTA (usuarios) =================
+    function openSell() {
+      openModal(`<h3 class="text-lg font-extrabold mb-1">Vende tu prenda</h3>
+        <p class="text-xs text-slate-500 mb-4">Envíanos los datos. Nuestro equipo la revisa y, si se aprueba, se publica en el catálogo.</p>
+        <form onsubmit="submitSell(event)" class="space-y-3">
+          <input id="s-name" required placeholder="Nombre de la prenda" class="${IN}">
+          <div class="grid grid-cols-2 gap-2">
+            <input id="s-price" type="number" step="0.01" min="0" required placeholder="Precio ($)" class="${IN}">
+            <select id="s-cat" class="${IN}">${CATS.map(c => `<option>${c}</option>`).join("")}</select>
+            <select id="s-size" class="${IN}">${SIZES.map(s => `<option>${s}</option>`).join("")}</select>
+            <select id="s-cond" class="${IN}"><option>Nueva con etiqueta</option><option>Como nueva</option><option>Buen estado</option></select>
+          </div>
+          <textarea id="s-desc" rows="2" placeholder="Descripción: marca, medidas, detalles" class="${IN}"></textarea>
+          <label class="block text-xs font-bold">Foto de la prenda<input id="s-img" type="file" accept="image/*" required class="block w-full text-xs mt-1 font-normal"></label>
+          <div class="grid grid-cols-2 gap-2"><input id="s-seller" required placeholder="Tu nombre" class="${IN}"><input id="s-contact" required placeholder="Tu WhatsApp" class="${IN}"></div>
+          <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition">Enviar para revisión</button>
+        </form>`);
+    }
+    function submitSell(e) {
+      e.preventDefault();
+      readImage($("s-img").files[0], img => {
+        sellReqs.unshift({ id: uid(), title: $("s-name").value.trim(), price: parseFloat($("s-price").value), cat: $("s-cat").value, size: $("s-size").value, cond: $("s-cond").value, desc: $("s-desc").value.trim(), image: img, seller: $("s-seller").value.trim(), contact: $("s-contact").value.trim(), date: new Date().toLocaleString("es-PE"), status: "pendiente" });
+        if (save()) { closeModal(); toast("¡Enviada! Te contactaremos por WhatsApp"); }
+      });
+    }
+
+    // ================= PANEL DEL EQUIPO =================
+    function openAdmin() {
+      if (adminOn) return showAdmin();
+      openModal(`<h3 class="text-lg font-extrabold mb-3">Acceso del equipo</h3>
+        <form onsubmit="loginAdmin(event)"><input id="a-pin" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN" class="${IN} mb-3" autofocus>
+        <button class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl">Entrar</button></form>`);
+      setTimeout(() => $("a-pin")?.focus(), 50);
+    }
+    async function loginAdmin(e) { e.preventDefault(); if ($("a-pin").value === settings.pin) { adminOn = true; try { await loadAdminData(); } catch { toast("No se pudieron cargar pedidos y solicitudes"); } showAdmin(); } else toast("PIN incorrecto"); }
+    function logoutAdmin() { adminOn = false; closeModal(); }
+
+    function showAdmin(tab) {
+      if (!adminOn) return;
+      if (tab) adminTab = tab;
+      const pend = sellReqs.filter(r => r.status === "pendiente").length;
+      const tabs = [["resumen", "Resumen"], ["catalogo", "Catálogo"], ["ventas", "Solicitudes de venta" + (pend ? ` (${pend})` : "")], ["pedidos", "Pedidos"], ["ajustes", "Ajustes"]];
+      openModal(`<h3 class="text-lg font-extrabold mb-3">Panel del equipo</h3>
+        <div class="flex gap-2 flex-wrap mb-5 border-b border-slate-100 pb-3">${tabs.map(([k, l]) => `<button onclick="showAdmin('${k}')" class="px-3 py-1.5 rounded-lg text-sm font-semibold ${adminTab === k ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"}">${l}</button>`).join("")}
+        <button onclick="logoutAdmin()" class="ml-auto px-3 py-1.5 rounded-lg text-sm font-semibold text-red-600 bg-red-50">Salir</button></div>${adminViews[adminTab]()}`, "max-w-5xl");
+    }
+
+    const adminViews = {
+      resumen: () => {
+        const st = [["Prendas publicadas", products.filter(p => p.visible !== false).length], ["Solicitudes pendientes", sellReqs.filter(r => r.status === "pendiente").length], ["Pedidos", orders.length], ["Ventas totales", money(orders.filter(o => o.status !== "cancelado").reduce((s, o) => s + o.total, 0))]];
+        return `<div class="grid grid-cols-2 md:grid-cols-4 gap-3">${st.map(([l, v]) => `<div class="bg-slate-50 rounded-2xl p-4"><p class="text-xs text-slate-500">${l}</p><p class="text-2xl font-extrabold">${v}</p></div>`).join("")}</div>
+          <p class="text-xs text-slate-400 mt-4">${REMOTE ? "Los datos se sincronizan en la nube: todas las personas que entren al sitio ven las mismas prendas." : "⚠ Modo local: los datos solo se guardan en este navegador. Configura DB_URL para compartirlos entre dispositivos."}</p>`;
+      },
+      catalogo: () => `<form onsubmit="adminAddProduct(event)" class="grid grid-cols-2 md:grid-cols-6 gap-2 bg-slate-50 p-4 rounded-2xl mb-5">
+          <input id="n-name" required placeholder="Nombre" class="${IN} col-span-2">
+          <input id="n-price" type="number" step="0.01" required placeholder="Precio" class="${IN}">
+          <input id="n-stock" type="number" min="0" value="5" title="Stock" class="${IN}">
+          <select id="n-cat" class="${IN}">${CATS.map(c => `<option>${c}</option>`).join("")}</select>
+          <select id="n-skin" class="${IN}"><option value="todos">Piel: todas</option><option value="calido">Cálido</option><option value="frio">Frío</option><option value="neutro">Neutro</option></select>
+          <select id="n-body" class="${IN} col-span-2"><option value="todos">Silueta: todas</option><option value="reloj-arena">Reloj de arena</option><option value="rectangular">Rectangular</option><option value="triangulo">Triángulo</option><option value="triangulo-invertido">Triángulo invertido</option></select>
+          <input id="n-url" placeholder="URL de imagen" class="${IN} col-span-2"><input id="n-file" type="file" accept="image/*" class="text-xs col-span-2 self-center">
+          <button class="bg-indigo-600 text-white font-bold rounded-xl text-sm py-2 col-span-2">Publicar prenda</button></form>
+        <div class="overflow-x-auto"><table class="w-full text-sm"><thead class="text-left text-xs text-slate-500"><tr><th class="p-2">Prenda</th><th>Precio</th><th>Stock</th><th>Visible</th><th></th></tr></thead><tbody>
+        ${products.map(p => `<tr class="border-t border-slate-100"><td class="p-2"><div class="flex items-center gap-2"><img src="${esc(p.image)}" alt="" class="w-10 h-10 rounded-lg object-cover">${esc(p.title)}${p.source === "usuario" ? ` <span class="text-[10px] bg-indigo-50 text-indigo-600 px-1.5 rounded">segunda mano</span>` : ""}</div></td>
+          <td><input type="number" step="0.01" value="${p.price}" onchange="editProd(${p.id},'price',this.value)" class="${IN}" style="width:6rem"></td>
+          <td><input type="number" min="0" value="${p.stock}" onchange="editProd(${p.id},'stock',this.value)" class="${IN}" style="width:5rem"></td>
+          <td><input type="checkbox" ${p.visible !== false ? "checked" : ""} onchange="editProd(${p.id},'visible',this.checked)" aria-label="Visible"></td>
+          <td><button onclick="delProd(${p.id})" class="text-red-500 text-xs font-semibold">Eliminar</button></td></tr>`).join("")}</tbody></table></div>`,
+      ventas: () => sellReqs.length ? `<div class="grid md:grid-cols-2 gap-4">${sellReqs.map(r => `<div class="border border-slate-200 rounded-2xl p-3 flex gap-3"><img src="${esc(r.image)}" alt="" class="w-24 h-28 rounded-xl object-cover"><div class="text-sm flex-1 min-w-0">
+          <p class="font-bold">${esc(r.title)} · ${money(r.price)}</p>
+          <p class="text-xs text-slate-500">${esc(r.cat)} · talla ${esc(r.size)} · ${esc(r.cond)}</p>
+          <p class="text-xs text-slate-500">${esc(r.seller)} · <a class="text-indigo-600 underline" target="_blank" rel="noopener" href="https://wa.me/${esc(r.contact.replace(/\D/g, ""))}">${esc(r.contact)}</a></p>
+          <p class="text-xs text-slate-400">${esc(r.date)}</p>
+          ${r.status === "pendiente" ? `<div class="flex gap-2 mt-2"><button onclick="reviewSell(${r.id},true)" class="bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Aprobar y publicar</button><button onclick="reviewSell(${r.id},false)" class="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1.5 rounded-lg">Rechazar</button></div>` : `<p class="text-xs font-bold mt-2 ${r.status === "aprobada" ? "text-emerald-600" : "text-slate-400"}">${r.status}</p>`}
+          </div></div>`).join("")}</div>` : `<p class="text-sm text-slate-400">Aún no hay solicitudes de venta.</p>`,
+      pedidos: () => orders.length ? orders.map(o => `<div class="border border-slate-200 rounded-2xl p-4 mb-3 text-sm">
+          <div class="flex flex-wrap justify-between gap-2"><p class="font-bold">${esc(o.name)} <span class="font-normal text-slate-400 text-xs">${esc(o.date)} · ${esc(o.ship)}</span></p>
+          <select onchange="setOrder(${o.id},this.value)" class="${IN}" style="width:9rem">${["nuevo", "en proceso", "entregado", "cancelado"].map(s => `<option ${o.status === s ? "selected" : ""}>${s}</option>`).join("")}</select></div>
+          <p class="text-xs text-slate-500 mt-1">${o.lines.map(l => `${esc(l.title)} (${esc(l.size)}) x${l.qty}`).join(" · ")}</p>
+          ${o.note ? `<p class="text-xs text-slate-400">Nota: ${esc(o.note)}</p>` : ""}<p class="font-extrabold mt-1">${money(o.total)}</p></div>`).join("") : `<p class="text-sm text-slate-400">Todavía no hay pedidos.</p>`,
+      ajustes: () => `<form onsubmit="saveSettings(event)" class="grid md:grid-cols-2 gap-3 max-w-2xl">
+          <label class="text-xs font-bold">WhatsApp de pedidos<input id="c-phone" value="${esc(settings.phone)}" class="${IN} mt-1 font-normal"></label>
+          <label class="text-xs font-bold">PIN del equipo<input id="c-pin" value="${esc(settings.pin)}" class="${IN} mt-1 font-normal"></label>
+          <label class="text-xs font-bold md:col-span-2">Mensaje del hero<input id="c-hero" value="${esc(settings.heroText)}" placeholder="Prendas elegidas según tu tono de piel y tu silueta." class="${IN} mt-1 font-normal"></label>
+          <label class="text-xs font-bold md:col-span-2">Imagen del hero (URL)<input id="c-himg" value="${esc(settings.heroImage)}" placeholder="https://..." class="${IN} mt-1 font-normal"></label>
+          <button class="bg-indigo-600 text-white font-bold rounded-xl py-2.5 text-sm">Guardar ajustes</button></form>
+        <div class="mt-6 flex gap-3 flex-wrap items-center"><button onclick="exportData()" class="bg-slate-900 text-white text-sm font-bold px-4 py-2 rounded-xl">Exportar respaldo</button>
+          <label class="text-sm font-bold bg-slate-100 px-4 py-2 rounded-xl cursor-pointer">Importar respaldo<input type="file" accept=".json" class="hidden" onchange="importData(this.files[0])"></label></div>`
+    };
+
+    function adminAddProduct(e) {
+      e.preventDefault();
+      const build = img => {
+        products.unshift({ id: uid(), title: $("n-name").value.trim(), price: parseFloat($("n-price").value), stock: parseInt($("n-stock").value) || 0, cat: $("n-cat").value, skin: $("n-skin").value, body: $("n-body").value, image: img || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80", tag: "Prenda exclusiva", visible: true, source: "tienda" });
+        save(); applyFilters(); showAdmin("catalogo"); toast("Prenda publicada");
+      };
+      const url = $("n-url").value.trim(), f = $("n-file").files[0];
+      url ? build(url) : f ? readImage(f, build) : build("");
+    }
+    function editProd(id, k, v) { const p = products.find(x => x.id === id); p[k] = k === "visible" ? v : Math.max(0, parseFloat(v) || 0); save(); applyFilters(); updateCartUI(); }
+    function delProd(id) { if (!confirm("¿Eliminar esta prenda?")) return; products = products.filter(p => p.id !== id); save(); applyFilters(); updateCartUI(); showAdmin(); }
+    function reviewSell(id, ok) {
+      const r = sellReqs.find(x => x.id === id); r.status = ok ? "aprobada" : "rechazada";
+      if (ok) products.unshift({ id: uid(), title: r.title, price: r.price, image: r.image, cat: r.cat, sizes: [r.size], cond: r.cond, desc: r.desc, stock: 1, skin: "todos", body: "todos", tag: "Segunda mano · " + r.cond, visible: true, source: "usuario" });
+      save(); applyFilters(); showAdmin("ventas");
+    }
+    function setOrder(id, s) { orders.find(o => o.id === id).status = s; save(); }
+    function saveSettings(e) {
+      e.preventDefault();
+      settings = { ...settings, phone: $("c-phone").value.trim(), pin: $("c-pin").value.trim() || "1234", heroText: $("c-hero").value.trim(), heroImage: $("c-himg").value.trim() };
+      save(); applySettings(); toast("Ajustes guardados");
+    }
+    function applySettings() {
+      if (settings.heroImage) $("hero-img").src = settings.heroImage;
+      if (settings.heroText) $("hero-text").textContent = settings.heroText;
+    }
+    function exportData() {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([JSON.stringify({ products, sellReqs, orders, settings })], { type: "application/json" }));
+      a.download = "nuvia-style-respaldo.json"; a.click();
+    }
+    function importData(f) {
+      if (!f) return;
+      f.text().then(t => {
+        try {
+          const d = JSON.parse(t);
+          const merge = (cur, inc) => { const m = new Map(cur.map(x => [x.id, x])); (inc || []).forEach(x => m.set(x.id, x)); return [...m.values()].sort(ord); };
+          products = merge(products, d.products); sellReqs = merge(sellReqs, d.sellReqs); orders = merge(orders, d.orders); settings = { ...settings, ...d.settings };
+          save(); applySettings(); applyFilters(); showAdmin("ajustes"); toast("Respaldo importado");
+        } catch { toast("Archivo no válido"); }
+      });
+    }
+
+    // ================= BANNER DE VENTA: la imagen se expande con el scroll =================
+    function initBand() {
+      if (!window.gsap || !$("band")) return;
+      if (prefersReduced()) return;
+      gsap.timeline({ defaults: { ease: "none" }, scrollTrigger: { trigger: "#band", start: "top 85%", end: "top 10%", scrub: 1 } })
+        .fromTo("#band-media", { clipPath: "inset(25% 25% 25% 25% round 60px)" }, { clipPath: "inset(0% 0% 0% 0% round 0px)", ease: "power2.inOut" }, 0)
+        .fromTo("#band-img", { scale: 1.8 }, { scale: 1 }, 0);
+    }
+
+    // ================= ANALISIS CON IA =================
+    const FB = "data:image/svg+xml;utf8," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 500'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#f8e6e8'/><stop offset='1' stop-color='#f4e8d8'/></linearGradient></defs><rect width='400' height='500' fill='url(#g)'/><path d='M200 190l-60 30 20 50 20-10v100h40V260l20 10 20-50z' fill='#fff' opacity='.7'/></svg>");
+    document.addEventListener("error", e => { const t = e.target; if (t.tagName === "IMG" && !t.dataset.fb) { t.dataset.fb = 1; t.src = FB; } }, true);
+
+    let aiPhoto = null, aiCtl = null;
+    const aiErr = { not_granted: "Necesitas permitir el uso de Claude para analizar tu foto.", rate_limited: "Hay muchas solicitudes. Espera un momento e inténtalo de nuevo.", images_unavailable: "El análisis de fotos no está disponible en este momento." };
+    function aiPrep(file) {
+      return new Promise((res, rej) => {
+        const im = new Image();
+        im.onload = () => {
+          const k = Math.min(1, 900 / Math.max(im.width, im.height)), c = document.createElement("canvas");
+          c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+          c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+          c.toBlob(b => b ? res({ blob: b, url: c.toDataURL("image/jpeg", 0.8) }) : rej(), "image/jpeg", 0.82);
+        };
+        im.onerror = rej; im.src = URL.createObjectURL(file);
+      });
+    }
+    async function aiPick(file) {
+      if (!file) return;
+      try { aiPhoto = await aiPrep(file); } catch { return toast("No se pudo leer la imagen"); }
+      $("ai-result").classList.add("hidden");
+      $("ai-stage").className = "rounded-3xl bg-white border border-indigo-100 p-4 flex flex-col items-center gap-3";
+      $("ai-stage").innerHTML = `<img src="${aiPhoto.url}" alt="Tu foto" class="max-h-72 rounded-2xl object-cover">
+        <div class="flex gap-2"><button onclick="aiAnalyze()" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-sm px-5 py-2.5 rounded-xl inline-flex items-center gap-2"><i data-lucide="wand-sparkles" class="w-4 h-4"></i> Analizar mi estilo</button>
+        <button onclick="aiReset()" class="text-sm font-semibold text-slate-500 px-3 py-2.5 rounded-xl hover:bg-slate-100">Quitar</button></div>`;
+      lucide.createIcons();
+    }
+    function aiReset() {
+      if (aiCtl) aiCtl.abort(); aiPhoto = null;
+      $("ai-stage").className = "rounded-3xl bg-white border-2 border-dashed border-indigo-200 min-h-[16rem] flex flex-col items-center justify-center text-center p-4 text-slate-400 text-sm";
+      $("ai-stage").innerHTML = `<i data-lucide="user-round" class="w-10 h-10 text-indigo-200 mb-2"></i>Aquí verás tu foto`;
+      $("ai-result").classList.add("hidden"); lucide.createIcons();
+    }
+    async function aiAnalyze() {
+      const out = $("ai-result"); out.classList.remove("hidden");
+      out.innerHTML = `<div class="text-center py-8 text-indigo-700 font-semibold text-sm animate-pulse">Analizando tu foto con IA… puede tardar unos segundos</div>`;
+      const sample = await (window.claude ? claude.use("sample") : null);
+      if (!sample && !AI_PROXY_URL) { return aiFallback("La IA no está disponible desde este enlace"); }
+      const cat = products.filter(p => p.visible !== false && p.stock > 0).map(p => ({ id: p.id, titulo: p.title, categoria: p.cat, nota: p.tag }));
+      const prompt = `Eres una asesora de imagen y colorimetría (análisis de color personal) de la tienda de moda "Nuvia Style". La persona subió su propia foto para recibir recomendaciones de ropa. Analiza la foto adjunta y responde SOLO con un JSON válido (sin markdown) con esta forma:
+{"valida":true|false,"nota":"si valida=false explica brevemente qué foto necesitas","skin":"calido|frio|neutro","eyes":"oscuros|claros","body":"reloj-arena|rectangular|triangulo|triangulo-invertido|null","subtono":"frase corta sobre su subtono","resumen":"2 frases amables sobre su perfil","colores":[{"nombre":"","hex":"#rrggbb"}],"evitar":[{"nombre":"","hex":"#rrggbb"}],"consejos":["3 consejos de cortes y siluetas"],"picks":[{"id":0,"motivo":"por qué le favorece, 1 frase"}]}
+Reglas: valida=false si no hay una persona con rostro visible. "colores": 6 colores que la favorecen; "evitar": 3. body="null" (texto) si el cuerpo no se ve lo suficiente para juzgar la silueta. Describe solo lo visible, con tono positivo y respetuoso: no comentes peso, edad ni atractivo. "picks": hasta 3 prendas de este catálogo (usa su id exacto): ${JSON.stringify(cat)}. Escribe en español.`;
+      aiCtl = new AbortController();
+      try {
+        const r = sample ? await sample.json(prompt, { images: [aiPhoto.blob], signal: aiCtl.signal, cache: false }) : await aiViaProxy(prompt);
+        aiShow(r); if (window.gsap && !prefersReduced()) gsap.from("#ai-result > div > *", { y: 50, opacity: 0, stagger: 0.15, duration: 0.8, ease: "power3.out" });
+      } catch (e) {
+        if (e.code === "cancelled") return;
+        await aiFallback((aiErr[e.code] || "La IA no pudo responder") + " (" + (e.code || "error") + ")");
+      }
+    }
+    // Si alojas la página fuera de Claude, pon aquí la URL de tu servidor intermedio (con tu clave de IA guardada allí).
+    // Recibe POST {prompt, image} y devuelve el JSON del análisis. Vacío = usa solo la IA de Claude o el análisis básico.
+    const AI_PROXY_URL = "";
+    async function aiViaProxy(prompt) {
+      const res = await fetch(AI_PROXY_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt, image: aiPhoto.url }), signal: aiCtl.signal });
+      if (!res.ok) throw { code: "http_" + res.status };
+      const data = await res.json();
+      if (data && data.valida !== undefined) return data;
+      const m = String(data && data.text != null ? data.text : JSON.stringify(data)).match(/\{[\s\S]*\}/);
+      if (!m) throw { code: "invalid_json" };
+      return JSON.parse(m[0]);
+    }
+    async function aiFallback(reason) {
+      const out = $("ai-result");
+      const r = await aiLocal();
+      if (!r) { out.innerHTML = `<p class="text-sm text-slate-600 text-center py-6">${esc(reason)}. Tampoco pudimos leer el tono de tu piel: prueba con una foto de frente, con luz natural, o usa el test manual de abajo.</p>`; return; }
+      aiShow(r);
+      out.insertAdjacentHTML("afterbegin", `<p class="text-xs text-slate-500 mb-2">${esc(reason)}. Te mostramos un análisis básico basado en el tono de tu piel.</p>`);
+    }
+    const AI_PAL = {
+      calido: { c: [["Terracota", "#c8745a"], ["Mostaza", "#d9a441"], ["Oliva", "#8a8f4e"], ["Coral", "#f08a6c"], ["Camel", "#c19a6b"], ["Crema", "#f3e6cf"]], e: [["Fucsia", "#c2185b"], ["Azul hielo", "#bcd8ec"], ["Gris plata", "#b8bcc4"]], m: "dorados", t: "cálido" },
+      frio: { c: [["Rosa empolvado", "#d98aa3"], ["Lavanda", "#a99bd6"], ["Azul cobalto", "#3f63b5"], ["Esmeralda", "#2e8b6e"], ["Burdeos", "#7d2a45"], ["Gris perla", "#d7d9e0"]], e: [["Naranja", "#e8801c"], ["Mostaza", "#d9a441"], ["Marrón dorado", "#a6742f"]], m: "plateados", t: "frío" },
+      neutro: { c: [["Verde salvia", "#8fae94"], ["Rosa palo", "#e3a5a8"], ["Azul petróleo", "#2f6f7e"], ["Malva", "#b89ac0"], ["Beige", "#e2d1b8"], ["Vino suave", "#8e3d52"]], e: [["Neón", "#c6ff3d"], ["Naranja intenso", "#e8801c"]], m: "dorados o plateados", t: "neutro" }
+    };
+    function aiLocal() {
+      return new Promise(res => {
+        const im = new Image();
+        im.onerror = () => res(null);
+        im.onload = () => {
+          const W = 100, H = Math.max(1, Math.round(im.height * W / im.width)), c = document.createElement("canvas");
+          c.width = W; c.height = H;
+          const x = c.getContext("2d"); x.drawImage(im, 0, 0, W, H);
+          const d = x.getImageData(Math.round(W * 0.25), Math.round(H * 0.15), Math.max(1, Math.round(W * 0.5)), Math.max(1, Math.round(H * 0.55))).data;
+          let R = 0, G = 0, B = 0, n = 0;
+          for (let i = 0; i < d.length; i += 4) {
+            const r = d[i], g = d[i + 1], b = d[i + 2];
+            const cb = 128 - 0.1687 * r - 0.3313 * g + 0.5 * b, cr = 128 + 0.5 * r - 0.4187 * g - 0.0813 * b;
+            if (r > 80 && g > 40 && b > 20 && r > g && r > b && cb >= 77 && cb <= 127 && cr >= 133 && cr <= 173) { R += r; G += g; B += b; n++; }
+          }
+          if (n < 40) return res(null);
+          R /= n; G /= n; B /= n;
+          const rg = R / G, L = 0.299 * R + 0.587 * G + 0.114 * B;
+          const skin = rg > 1.38 ? "frio" : rg < 1.27 ? "calido" : "neutro", P = AI_PAL[skin];
+          const depth = L > 185 ? "claro" : L > 130 ? "medio" : "profundo";
+          const mk = a => a.map(([nombre, hex]) => ({ nombre, hex }));
+          const picks = products.filter(p => p.visible !== false && p.stock > 0 && (!p.skin || p.skin === "todos" || p.skin === skin)).slice(0, 3).map(p => ({ id: p.id, motivo: "Combina con tu subtono " + P.t + "." }));
+          res({ valida: true, skin, eyes: "", body: "", subtono: "Subtono " + P.t + ", piel de tono " + depth + ".", resumen: "Análisis básico de tu foto: tu piel tiene un subtono " + P.t + ". La iluminación puede alterar el resultado.", colores: mk(P.c), evitar: mk(P.e), consejos: ["Usa los colores de tu paleta cerca del rostro: blusas, cuellos y accesorios.", "Los metales " + P.m + " realzan tu tono.", "Los colores a evitar funcionan mejor lejos del rostro o combinados con un neutro."], picks });
+        };
+        im.src = aiPhoto.url;
+      });
+    }
+    function aiShow(r) {
+      const out = $("ai-result");
+      if (!r || r.valida === false) { out.innerHTML = `<p class="text-sm text-slate-600 text-center py-6">${esc(r?.nota || "Necesitamos una foto con tu rostro visible y buena luz.")}</p>`; return; }
+      const ok = (v, list) => list.includes(v) ? v : "";
+      const skin = ok(r.skin, ["calido", "frio", "neutro"]), eyes = ok(r.eyes, ["oscuros", "claros"]), body = ok(r.body, ["reloj-arena", "rectangular", "triangulo", "triangulo-invertido"]);
+      $("user-skin").value = skin; if (eyes) $("user-eyes").value = eyes; if (body) $("user-body").value = body;
+      applyFilters();
+      const sw = (a, ring) => (Array.isArray(a) ? a : []).slice(0, 6).filter(c => /^#[0-9a-f]{6}$/i.test(c.hex)).map(c => `<div class="flex items-center gap-2 bg-white border border-slate-200 rounded-full pl-1 pr-3 py-1 text-xs font-semibold text-slate-700"><span class="w-6 h-6 rounded-full ${ring}" style="background:${c.hex}"></span>${esc(c.nombre)}</div>`).join("");
+      const picks = (Array.isArray(r.picks) ? r.picks : []).map(k => ({ p: products.find(x => x.id === k.id), m: k.motivo })).filter(x => x.p).slice(0, 3);
+      const L = { calido: "Cálido", frio: "Frío", neutro: "Neutro", oscuros: "Oscuros", claros: "Claros", "reloj-arena": "Reloj de arena", rectangular: "Rectangular", triangulo: "Triángulo", "triangulo-invertido": "Triángulo invertido" };
+      const chip = (t, v) => v ? `<span class="bg-white border border-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">${t}: ${L[v]}</span>` : "";
+      out.innerHTML = `<div class="bg-white rounded-3xl border border-indigo-100 p-5 sm:p-6">
+        <div class="flex flex-wrap gap-2 mb-3">${chip("Subtono", skin)}${chip("Ojos", eyes)}${chip("Silueta", body)}</div>
+        <p class="text-slate-700 text-sm">${esc(r.resumen)} <span class="text-slate-400">${esc(r.subtono)}</span></p>
+        <h4 class="font-extrabold text-slate-900 mt-5 mb-2 text-sm">Colores que te favorecen</h4><div class="flex flex-wrap gap-2">${sw(r.colores, "ring-1 ring-slate-200")}</div>
+        ${r.evitar?.length ? `<h4 class="font-extrabold text-slate-900 mt-4 mb-2 text-sm">Mejor en pequeñas dosis</h4><div class="flex flex-wrap gap-2">${sw(r.evitar, "ring-1 ring-slate-200")}</div>` : ""}
+        ${r.consejos?.length ? `<h4 class="font-extrabold text-slate-900 mt-5 mb-2 text-sm">Cortes y siluetas</h4><ul class="text-sm text-slate-600 space-y-1 list-disc pl-5">${r.consejos.slice(0, 3).map(c => `<li>${esc(c)}</li>`).join("")}</ul>` : ""}
+        ${picks.length ? `<h4 class="font-extrabold text-slate-900 mt-5 mb-3 text-sm">Del catálogo, para ti</h4><div class="grid sm:grid-cols-3 gap-3">${picks.map(({ p, m }) => `<button onclick="openProduct(${p.id})" class="text-left bg-slate-50 hover:bg-indigo-50 rounded-2xl p-3 flex gap-3 transition"><img src="${esc(p.image)}" alt="" class="w-16 h-20 rounded-xl object-cover bg-slate-100"><span class="min-w-0"><b class="block text-sm text-slate-900">${esc(p.title)}</b><span class="text-xs text-slate-500">${esc(m)}</span></span></button>`).join("")}</div>` : ""}
+        <button onclick="document.getElementById('product-grid').scrollIntoView({behavior:'smooth'})" class="mt-5 bg-slate-900 hover:bg-indigo-600 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition">Ver todas mis recomendaciones</button>
+      </div>`;
+      lucide.createIcons();
+    }
+
+    const LOGO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCAHgAeADASIAAhEBAxEB/8QAHAABAAIDAQEBAAAAAAAAAAAAAAUGAgMEAQcI/8QAURAAAQMDAgMEBQYJCAgGAwEAAQACAwQFERIhBjFBE1FhcQcUIoGRMkJSobHBFSNDYnKCkqLRFiQzU2Oys8IlNnN1k8Ph8DQ1RWWj4zdEhdL/xAAZAQEAAwEBAAAAAAAAAAAAAAAAAQIDBAX/xAAtEQEBAAIBAwMDBAEFAQEAAAAAAQIRAxIhMQQyQRMiUTNhcYEjQlKRsfAkof/aAAwDAQACEQMRAD8A/S6Iio6xERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERNgiIE2CJhE2CIibBERNgiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIi1z1ENLC6aoljhiZu6SRwa0eZKjY2IqzX8c00bcW2mfWk7NleeyhPk4jU79VpUZ2vE19yZKqSmhP5Ojb2Dfe92Xn3aVneWeJ3XnHle6319zobXH2tfWU9Iz6U0gZn4qCqfSJZo9qSK4XE99LSuLP23Yb9a46LganikE8rmCY85A3XIf135d9amYeHaGN2p8Jmf8ASlcXH61G87+y3RjPNV6X0i3WZxFBww7HR1TWMb9TNRWl/EvHVWP5tb7RT55ZbLKR8Q1XaKkjiGI4mMHgFtER706Mr5qerCfCgB/pJn3/AAhQQg/QoP4yIaL0jv8A/X4W+VDGP8y+g9ke9OyHen0/3qfq4/7Y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zJafFRs1Vjr6ttLExvaxxTVDxBA6RpLO1cDpDsdCR4Z5dVG11dV3SG82e3zuobtTsaIJxgg62ao5MEEaS4OaRg40ld92t0d3t01HI98YkAIkZ8qNwIc17fEOAI8lx221VFNXy3CurG1dZJE2DVHCIWNjDi7Abk7kkkknwGENfKBtFRequ5Wq5tjpaqGaN1LWytPYTMZk+zJGcgujkBGWkfKd7IyrPQWyK2TVb6d8gZVTGodGT7LHkAOLe7URqPiSepXV2QJJwN1sDcc0ibWIbvnnnqswMIvVOkCIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAvCAV6iDEt3WuWCOaOSKaNskcjSx7HDIc0jBBHUELciaEfbrRS2pjoqON0URORH2jnNbtjDQ4nSPAYC9utvdcaeGHW1rGVMM8gcM62seH6feWhdy9UaEDfqasNZa66lppKplJJK6WGJzQ/24iwObqIBxk5GR8rwWuwultNBUVNzjdDNW17pTEz8Y5hleGsadOxIboyRsMHoMqwaVjoHcmk77aZl4bvjVjfbqqhwH2VPXVcDG+tRtZG/8ImKSKSUl7vYma/YyjmXDmDuBsrc1uNl48F2MknHeUR+yh1sVRW8EWLtoyTDU0zphPTvnAaHuBL4xu4YPJSl3oYrzwrRUMURkh9apSRTwOpyxrZRqe1h3ZpwXDux1VnDcciQsRH37+ajSdqnZ7FdKXiKO711RFVVFTDLBWTRjQCxvZ9jhp/ReTjYGR2NlJWrhyG21lVUuHayvqZ5IHF7nCGKV2ota07NJOc6RvtupzR4LIMCaTbtDt4do21L6ktc6V1WaxjtWDFIWta7SRg4cG7g5BycrubRQNnNQIYhOWhpl0DWQOQ1c8eC68BMDuU6RtiwbL3SskUoeL1EQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREH/2Q==";
+    function initReveals() {
+      if (!window.gsap || prefersReduced()) return;
+      const once = (trigger, start = "top 85%") => ({ trigger, start, once: true });
+      gsap.from("header", { y: -140, opacity: 0, duration: 1.2, ease: "bounce.out" });
+      gsap.from("header .nuvia-logo", { rotate: -12, scale: 0.3, y: -30, duration: 1.8, delay: 0.5, ease: "elastic.out(1, 0.4)" });
+      gsap.from("#ai", { y: 140, scale: 0.94, opacity: 0, duration: 1.3, ease: "power3.out", scrollTrigger: once("#ai", "top 90%") });
+      gsap.from("#ai .grid > div:first-child > *", { y: 60, opacity: 0, stagger: 0.2, duration: 1, ease: "power3.out", scrollTrigger: once("#ai", "top 80%") });
+      gsap.from("#ai-stage", { x: 160, rotate: 4, opacity: 0, duration: 1.3, ease: "power3.out", scrollTrigger: once("#ai", "top 80%") });
+      gsap.from("#test", { y: 140, scale: 0.94, opacity: 0, duration: 1.3, ease: "power3.out", scrollTrigger: once("#test", "top 90%") });
+      gsap.from("#test .grid > div", { y: 80, scale: 0.9, opacity: 0, stagger: 0.25, duration: 1, ease: "back.out(1.5)", scrollTrigger: once("#test", "top 75%") });
+      gsap.from("#band-media h3, #band-media p, #band-media button", { y: 100, opacity: 0, stagger: 0.25, duration: 1.2, ease: "power3.out", scrollTrigger: once("#band", "top 40%") });
+      gsap.from("footer .nuvia-logo", { scale: 0.3, opacity: 0, rotate: -25, duration: 1.6, ease: "elastic.out(1, 0.5)", scrollTrigger: once("footer", "top 85%") });
+      gsap.fromTo("footer .nuvia-logo", { y: 60 }, { y: -60, ease: "none", scrollTrigger: { trigger: "footer", start: "top bottom", end: "bottom bottom", scrub: 0.8 } });
+    }
+    function initApp() {
+      document.querySelectorAll(".nuvia-logo").forEach(i => { i.src = LOGO; });
+      $("f-cat").insertAdjacentHTML("beforeend", CATS.map(c => `<option>${c}</option>`).join(""));
+      applySettings(); applyFilters(); updateCartUI(); if (REMOTE) startRemote(); initBand(); initReveals(); lucide.createIcons();
+    }
+  </script>
+</body>
+</html>
